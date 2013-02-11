@@ -13,6 +13,9 @@
  *
  */
 
+// TODO
+//Check if I can make some sort of splash screen lol
+
 import java.io.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -26,6 +29,8 @@ public class RenamerGUI extends JFrame implements ActionListener {
 	public static final long serialVersionUID = 42L;
 
 	RenamerForGUI renamer;
+	
+	String OS;
 
 	JPanel mainPanel;
 
@@ -61,6 +66,22 @@ public class RenamerGUI extends JFrame implements ActionListener {
 
 		//this.setPreferredSize(new Dimension(300, 300));
 		this.setMinimumSize(new Dimension(550, 420));
+		
+		OS = System.getProperty("os.name").toLowerCase();
+		
+		if(isMac()) {
+			setTitle("File Renamer                                                                 \u00A9 Artemis/Marcus");
+		}
+			
+		if(isUnix()) {
+			setTitle("File Renamer                                                                                    \u00A9 Artemis/Marcus");
+			this.setMinimumSize(new Dimension(650, 420));
+		}
+			
+		if(isWindows()) {
+			setTitle("File Renamer                                                                          \u00A9 Artemis/Marcus");
+		}
+			
 
 		introString = "<html>This is a program that renames your TV Series files for you. This program only works if:<br><br></html>";
 		reqString = "<html>Your folder structure is something like this: G:\\Series\\Family Guy\\Season 2<br>Your files are in order, and starts with the first episode of the season.<br><br></html>";
@@ -80,9 +101,9 @@ public class RenamerGUI extends JFrame implements ActionListener {
 		cancel = new JButton("CANCEL");
 		help = new JButton("HELP");
 
-		seasonField = new JTextField(30);
-		seasonNumberField = new JTextField(30);
-		directoryField = new JTextField(30);
+		seasonField = new JTextField(40);
+		seasonNumberField = new JTextField(40);
+		directoryField = new JTextField(40);
 
 		rename.addActionListener(this);
 		cancel.addActionListener(this);
@@ -132,14 +153,27 @@ public class RenamerGUI extends JFrame implements ActionListener {
 		setVisible(true);
 
 		this.setResizable(false);
-
-    	setTitle("File Renamer                                                                          \u00A9 Artemis/Marcus");
+		
+		
+	}
+	
+	private boolean isMac() {
+		return OS.contains("mac");
+	}
+	
+	private boolean isWindows() {
+		return OS.contains("win");
+	}
+	
+	private boolean isUnix() {
+		return (OS.contains("nix") || OS.contains("nux") || OS.contains("aix"));
 	}
 
 	public void actionPerformed(ActionEvent e) {
 
 		if (e.getSource() == cancel)
 		{
+			System.out.println(OS);
 			System.out.println("BYELOL");
 			System.exit(0);
 		}
