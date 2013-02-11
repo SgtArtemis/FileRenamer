@@ -34,9 +34,11 @@ public class EpNameLister {
 		
 		EpNameLister lister = new EpNameLister();
 		
-		lister.run("Game of Thrones", 2);
+		lister.run("Family Guy", 5);
 		
 		lister.printNames();
+		
+		System.out.println("Done.");
 		
 	}
 	
@@ -150,21 +152,25 @@ public class EpNameLister {
 		//Create the main array, split at the points we defined.
 		textArray = mainHTML.split(mainRegex);
 		
-		boolean correctSeries = false;
+		
 		
 		//TODO
 		/*
 		 * If you have a certain series that does not work, make a note of it here.
 		 * (This is probably because there is a Pilot not in the season, or something like that.)
 		 */
-		boolean GameOfThrones = false;
+		boolean isPilot = false;
+		boolean correctSeries = false;
+		boolean foundSeason = false;
+		
+		//System.out.println(textArray[0]);
 		
 		//Because we only want the episode names, and not the stuff in between, we make the iteration jump 2 steps.
 		for(int i = 1; i<textArray.length; i=i+2) {
 			
-			//If the series is "Game of Thrones", which has a pilot (not in a season), it will start at [2] instead of [1]
-			if(!GameOfThrones && (series.equals("Game Of Thrones") || series.equals("Game of Thrones"))) {
-				GameOfThrones = true;
+			//If the series is has a pilot (not in a season), it will start at [2] instead of [1]
+			if(!isPilot && textArray[i-1].contains("&bull; Pilot")) {
+				isPilot = true;
 				i++;
 			}
 			
@@ -191,8 +197,9 @@ public class EpNameLister {
 			 * We input a certain Season number. Because we only want to list certain episode names,
 			 * we check if we're in the correct season.
 			 */
-			if(textArray[i-1].contains("Season " + seriesNumber)) {
+			if(textArray[i-1].contains("Season " + seriesNumber) && !foundSeason) {
 				correctSeries = true;
+				foundSeason = true;
 			}
 			
 			if(textArray[i-1].contains("Season " + (seriesNumber+1))) {
