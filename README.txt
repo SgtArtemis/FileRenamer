@@ -19,7 +19,8 @@ ________________________________________________________________________________
 | and that they are in order.
 | 
 | The folder containing the episodes of a certain TV Series has at least one folder in it.
-| Basically, even if the show only has one season, there is still a folder called "Season 1".
+| Basically, even if the show only has one season, there is still
+| has to be a folder called "Season 1".
 |
 | So yeah, if you dump all of the episodes into one folder, it will not work.
 
