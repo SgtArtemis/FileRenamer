@@ -34,7 +34,7 @@ public class EpNameLister {
 
 		EpNameLister lister = new EpNameLister();
 
-		lister.run("Two and a half men", 6);
+		lister.run("Supernatural", 3);
 
 		lister.printNames();
 
@@ -146,26 +146,43 @@ public class EpNameLister {
 		//Create the main array, split at the points we defined.
 		textArray = mainHTML.split(mainRegex);
 
+		//TODO Syso
 		//System.out.println(textArray[1]);
+		//System.out.println(textArray[2]);
 
 		boolean correctSeries = false;
 		boolean finishedListing = false;
 		boolean hasPilot = false;
+		boolean hasUnairedPilot;
+		
+		if(mainHTML.contains("Unaired Pilot"))
+			hasUnairedPilot = true;
+		else
+			hasUnairedPilot = false;
 
 
 		//Because we only want the episode names, and not the stuff in between, we make the iteration jump 2 steps.
 		for(int i = 1; i<textArray.length; i=i+2) {
 
 			//If the series is "Game of Thrones", which has a pilot (not in a season), it will start at [2] instead of [1]
-			if(!hasPilot && series.contains("&bull; Pilot")) {
+			if(!hasPilot && (textArray[i].contains("&bull; Pilot") || textArray[i-1].contains("&bull; Pilot"))) {
 				hasPilot = true;
 				i++;
+				//System.out.println("Gets in here");
 			}
+
+			//If the episode is unaired, skip it until we find a proper episode name.
+			while(textArray[i].trim().contains("Unaired ")) {
+				i = i+2;
+				//System.out.println(i);
+			}
+				
 
 
 			//If we encounter a special or an episode that hasn't been named, then you do best in leaving it.
-			if(textArray[i].trim().startsWith("Season ") || textArray[i].trim().startsWith("Special ") || textArray[i].trim().startsWith("\\W"))
+			if(textArray[i].trim().startsWith("Season ") || textArray[i].trim().startsWith("Special ") || textArray[i].trim().startsWith("\\W")) {
 				break;
+			}
 
 			/*
 			 * Code snippet to remove the </a> that will sometimes occur.
@@ -176,18 +193,15 @@ public class EpNameLister {
 				textArray[i] = ss;
 			}
 
-			//If the episode is unaired, skip it until we find a proper episode name.
-			while(textArray[i].trim().startsWith("Unaired "))
-				i = i+2;
-
+			
 
 			/*
 			 * The two main if-clauses.
 			 * We input a certain Season number. Because we only want to list certain episode names,
 			 * we check if we're in the correct season.
 			 */
-			//TODO It has to match Season 1 and not Season 10
-			if(!finishedListing && (textArray[i-1].contains("Season " + seriesNumber) || textArray[i-1].contains("Season " + seriesNumber))) {
+			//TODO It has to match Season 1 and not Season 10 // NOT i-3 // CANT DO
+			if((!finishedListing && textArray[i-1].contains("Season " + seriesNumber)) || (hasUnairedPilot && textArray[i-3].contains("Season " + seriesNumber))) {
 				correctSeries = true;
 			}
 
