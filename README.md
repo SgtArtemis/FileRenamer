@@ -9,20 +9,7 @@ This program changes that to something more elegant, in this
 "Family Guy - S02E01 - Name of the Episode".
 __________________________________________________________________________________________
 
-| NOTE:
-| The program will only work if:
-|
-| You organize your TV Series with folders and subfolders. 
-| For example G:\Media\Shows\Family Guy\Season 2\
-|
-| It also assumes that the episodes start with the first episode of the season, 
-| and that they are in order.
-| 
-| The folder containing the episodes of a certain TV Series has at least one folder in it.
-| Basically, even if the show only has one season, there is still
-| has to be a folder called "Season 1".
-|
-| So yeah, if you dump all of the episodes into one folder, it will not work.
+WARNING: The program will not work on all TV Shows (such as BBC's "Life" or "Doctor Who").
 
 __________________________________________________________________________________________
 

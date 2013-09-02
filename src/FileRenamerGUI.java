@@ -23,11 +23,11 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 
 
-public class RenamerGUI extends JFrame implements ActionListener {
+public class FileRenamerGUI extends JFrame implements ActionListener {
 
 	public static final long serialVersionUID = 42L;
 
-	RenamerForGUI renamer;
+	FileReader reader;
 
 	JPanel mainPanel;
 
@@ -39,8 +39,6 @@ public class RenamerGUI extends JFrame implements ActionListener {
 	JLabel thirdLabel;
 
 	JTextField directoryField;
-	JTextField seasonField;
-	JTextField seasonNumberField;
 
 	JButton rename;
 	JButton cancel;
@@ -56,19 +54,16 @@ public class RenamerGUI extends JFrame implements ActionListener {
 	String [] options = {"Continue", "Cancel"};
 
 	public static void main(String [] args)  throws IOException, FileNotFoundException {
-		RenamerGUI renamer = new RenamerGUI();
+		FileRenamerGUI renamer = new FileRenamerGUI();
 	}
 
-	public RenamerGUI() {
+	public FileRenamerGUI() {
 
 
-		this.setMinimumSize(new Dimension(550, 420));
+		this.setMinimumSize(new Dimension(550, 250));
 
-		introString = "<html>This is a program that renames your TV Series files for you. This program only works if:<br><br></html>";
-		reqString = "<html>Your folder structure is something like this: G:\\Series\\Family Guy\\Season 2<br>Your files are in order, and starts with the first episode of the season.<br><br></html>";
-		firstString = "<html><br>Copy and paste the directory in which you keep your folders.<br>Example: G:\\Media\\Series\\</html>";
-		secondString = "<html><br>Name the show whose episodes you want to rename.</html>";
-		thirdString = "<html><br>Name the season number of that show.</html>";
+		introString = "<html>This is a program that renames your TV Series files for you.<br></html>";
+		firstString = "<html><br>Copy and paste the directory in which you keep your TV Series.<br>Example: G:\\Media\\Series\\Family Guy\\Season 9\\</html>";
 
 		mainPanel = new JPanel();
 		textLabel = new JLabel(introString);
@@ -82,8 +77,6 @@ public class RenamerGUI extends JFrame implements ActionListener {
 		cancel = new JButton("CANCEL");
 		help = new JButton("HELP");
 
-		seasonField = new JTextField(30);
-		seasonNumberField = new JTextField(30);
 		directoryField = new JTextField(30);
 
 		rename.addActionListener(this);
@@ -91,8 +84,6 @@ public class RenamerGUI extends JFrame implements ActionListener {
 		help.addActionListener(this);
 
 		directoryField.addActionListener(this);
-		seasonNumberField.addActionListener(this);
-		seasonField.addActionListener(this);
 
 		rename.setPreferredSize(new Dimension(408, 25));
 		cancel.setPreferredSize(new Dimension(200, 25));
@@ -115,10 +106,6 @@ public class RenamerGUI extends JFrame implements ActionListener {
 		mainPanel.add(reqLabel);
 		mainPanel.add(firstLabel);
 		mainPanel.add(directoryField);
-		mainPanel.add(secondLabel);
-		mainPanel.add(seasonField);
-		mainPanel.add(thirdLabel);
-		mainPanel.add(seasonNumberField);
 
 		mainPanel.add(spaceLabel);
 
@@ -153,7 +140,6 @@ public class RenamerGUI extends JFrame implements ActionListener {
 							+ "It will name your files into something like 'Family Guy - S07E14 - The Name of It'\n\n"
 							+ "Is the program not working? Make sure that:\n"
 							+ "You have specified the correct directory.\n"
-							+ "The name of the folder where you keep your files is the same is what you entered.\n"
 							+ "The TV Series exists. To check this, search on www.epguides.com\n"
 							+ "\nIf it still does not work, contact me via facebook/Marcus.Heine or at mheine@kth.se\n"
 							+ "Some series (such as BBC's Life) aren't named the way they should be.\n"
@@ -174,78 +160,22 @@ public class RenamerGUI extends JFrame implements ActionListener {
 
 			if(response == 0)
 			{
-				//System.out.println("You chose to continue.");
-
-				if(directoryField.getText().equals("") || seasonField.getText().equals("") || seasonNumberField.getText().equals(""))
-					JOptionPane.showMessageDialog(null, "One or more of the required fields are missing.");
-
-				else if(!directoryField.getText().contains(":\\"))
-					JOptionPane.showMessageDialog(null, "There is something wrong with the path file.\nTo find out the path file, find the place where you keep your TV series folders,\nright-click on one of them and click properties.\nIt should say something like \"G:\\Series\\\" somewhere.");
-
-
-
-				else
-				{
-					String directory = directoryField.getText();
-
-					if(!directory.endsWith("\\"))
-						directory = directory.concat("\\");
-
-					String series = seasonField.getText();
-
-					int season;
-
-					try{
-						//If it's an integer, fine! :D
-						season = Integer.parseInt(seasonNumberField.getText());
-
-					} catch (NumberFormatException notIntError) {
-
-						//If not, we set up a regex to fix that.
-						String s = seasonNumberField.getText();
-						String [] temp = s.split("\\s+");
-						//We assume that the user has written something like "Season 4". If not, then the program fucking fails. 
-						season = Integer.parseInt(temp[1]);
-					}
-
-					renamer = new RenamerForGUI();
-
-					try {
-
-
-
-						renamer.runRenamer(directory, series, season);
-
-						if(renamer.getListSize() == 0)
-							JOptionPane.showMessageDialog(null, "Something went wrong. A possible explanation is that you misspelled\nthe Series or that the season of that Series does not exist.", " ", JOptionPane.ERROR_MESSAGE);
-
-						else {
-							JOptionPane.showMessageDialog(null, "       Files were successfully renamed!", " ", JOptionPane.PLAIN_MESSAGE);		
-						}
-
-					} 
-					catch (FileNotFoundException error) {
-
-						JOptionPane.showMessageDialog(null, "Files were not renamed. The proper webpage was not found.\nMake sure that the webpage http://epguides.com/*yourTvSeries*/ exists.", "Website not found.", JOptionPane.ERROR_MESSAGE);
-
-					}
-
-					catch (UnknownHostException error) {
-
-						JOptionPane.showMessageDialog(null, "Make sure you are connected to the internet.", "Website not found.", JOptionPane.ERROR_MESSAGE);
-
-					}
-
-					catch (Exception notFoundError) {
-
-
-						JOptionPane.showMessageDialog(null, "Something went wrong. This may be a faulty error messge.\nIf your files are not renamed, try again. If you still receive the same error,\n something is wrong with the program. WEYO!", " ", JOptionPane.ERROR_MESSAGE);	
-						//error.printStackTrace();
-					}
-
+				try {
+					
+					reader = new FileReader();
+				} 
+				catch (IOException exc) {
+					JOptionPane.showMessageDialog(null, "Some sort of fucking error. Not sure how you got this.");
 				}
-
-
+				
+				
+				try {
+					reader.readName(directoryField.getText());
+				} 
+				catch (IOException e1) {
+					JOptionPane.showMessageDialog(null, "Some sort of fucking error. How do?");
+				}
+				
 			}
 
 		}
