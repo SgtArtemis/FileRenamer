@@ -17,14 +17,15 @@
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.TreeMap;
 
-public class EpNameLister {
+public class EpNameFinder {
 
 	String mainString;
 	String mainHTMLCopy;
 	String [] textArray;
-	//String [] mainArray;
 	ArrayList<String> episodeNames = new ArrayList<String>();
+	TreeMap<String, ArrayList<String>> mainMap = new TreeMap<String, ArrayList<String>>();
 
 	/**
 	 * The main class, which isn't really supposed to be run, but can be used for testing purposes.
@@ -32,9 +33,9 @@ public class EpNameLister {
 	public static void main(String [] args) throws IOException, ArrayIndexOutOfBoundsException
 	{
 
-		EpNameLister lister = new EpNameLister();
+		EpNameFinder lister = new EpNameFinder();
 
-		lister.run("Supernatural", 3);
+		lister.run("Top Gear", 16);
 
 		lister.printNames();
 
@@ -47,7 +48,7 @@ public class EpNameLister {
 	 * Constructor for the EpNameLister class. Pretty much useless, but hey, you need one.
 	 * @throws IOException
 	 */
-	public EpNameLister() throws IOException {
+	public EpNameFinder() throws IOException {
 		mainString = "";
 	}
 
@@ -66,8 +67,19 @@ public class EpNameLister {
 	 * Returns the main list of episodes.
 	 * @return A List containing the names of the episodes of the specified show and season.
 	 */
-	public ArrayList<String> getEpisodeNames() {
+	public ArrayList<String> getAllEpisodeNames() {
 		return episodeNames;
+	}
+
+	/**
+	 * @return Episode - The name of the episode at the selected index.
+	 */
+	public String getEpisodeName(int episode) {
+		
+		if(episodeNames.get(episode) == null)
+			return null;
+		
+		return episodeNames.get(episode);
 	}
 
 	public int getSize() {
@@ -79,7 +91,7 @@ public class EpNameLister {
 	 * Prints the names of the episodes.
 	 * This method is only used in the main method of this class.
 	 */
-	private void printNames() {
+	public void printNames() {
 
 		for(String episode : episodeNames) {
 			System.out.println(episode);
@@ -95,21 +107,47 @@ public class EpNameLister {
 	 * This method has to be called before getEpisodeNames() is called, otherwise episodeNames will be null.
 	 * 
 	 * @param series - The name of the TV Series.
-	 * @param seriesNumber - The number of the season.
+	 * @param season - The number of the season.
 	 * @throws IOException - If for some reason we can't read the HTML file.
 	 */
-	public void run(String series, int seriesNumber) throws IOException {
+	public void run(String series, int season) throws IOException {
+		
+		String listKey = series + " - Season " + season;
+		
+		//Basically intended to speed up the entire program. If the map already contains the list, use it instead of having to crawl the web.
+		if(mainMap.containsKey(listKey)){
+			System.out.println("Episode name found!");
+			episodeNames = mainMap.get(listKey);
+		}
+		
+		else {
+		
+		//The website doesn't have any series starting with "The", so we just remove it.
+		if(series.startsWith("The"))
+			series = series.replace("The ", "");
 
 		/*
 		 * Because the website needs the string to not have any spaces.
 		 * Capitalization is apparently not important; it will find the site as long as the spelling is right.
 		 */
-		String seriesNoSpaces = series.replaceAll(" ", "");
-		URL url = new URL("http://epguides.com/" + seriesNoSpaces + "/");
+		URL url = new URL("http://epguides.com/" + series.replaceAll(" ", "") + "/");
 
 		//Open a connection to the website. If there's any trouble, consult:  http://stackoverflow.com/questions/5867975/reading-websites-contents-into-string
 		URLConnection con = url.openConnection();
-		InputStream in = con.getInputStream();
+
+		InputStream in = null;
+
+		try {
+			in = con.getInputStream();
+		}
+		catch (UnknownHostException uhe) {
+			throw new UnknownHostException("Not connected to the internet.");
+		}
+		catch (SocketException se) {
+			throw new UnknownHostException("Internet connection was too slow.");
+		}
+		
+
 		String encoding = con.getContentEncoding();
 		encoding = encoding == null ? "UTF-8" : encoding;
 
@@ -123,6 +161,8 @@ public class EpNameLister {
 		//The main string, containing the sites entire HTML code.
 		String mainHTML = new String(baos.toByteArray(), encoding);
 		mainHTMLCopy = mainHTML;
+		
+		//System.out.println(mainHTML);
 
 		//Regex that "deletes" most parts of the page, making the site less of a pain in the ass to work with.
 		//This works because the names of the episodes are 'encapsuled' in <pre> tags. No idea why, but that makes it work.
@@ -132,6 +172,8 @@ public class EpNameLister {
 
 		//The source is now divided into 3 parts. We want the middle one, and we trim it down.
 		mainHTML = textArray[1].trim();
+		
+		//System.out.println(mainHTML);
 
 		//Before the name of the episode, the site writes "season xx episode xx'>"
 		//We set up a regex to split the string just after this occurence.
@@ -146,16 +188,16 @@ public class EpNameLister {
 		//Create the main array, split at the points we defined.
 		textArray = mainHTML.split(mainRegex);
 
-		//TODO Syso
-		//System.out.println(textArray[1]);
-		//System.out.println(textArray[2]);
-
 		boolean correctSeries = false;
 		boolean finishedListing = false;
 		boolean hasPilot = false;
 		boolean hasUnairedPilot;
 		
-		if(mainHTML.contains("Unaired Pilot"))
+		episodeNames.clear();
+		
+		//System.out.println(textArray[1]);
+
+		if(textArray[1].contains("Unaired Pilot"))
 			hasUnairedPilot = true;
 		else
 			hasUnairedPilot = false;
@@ -176,12 +218,14 @@ public class EpNameLister {
 				i = i+2;
 				//System.out.println(i);
 			}
-				
+
 
 
 			//If we encounter a special or an episode that hasn't been named, then you do best in leaving it.
-			if(textArray[i].trim().startsWith("Season ") || textArray[i].trim().startsWith("Special ") || textArray[i].trim().startsWith("\\W")) {
-				break;
+			if(textArray[i].trim().startsWith("Special ") || textArray[i].trim().startsWith("\\W")) {
+				//System.out.println("Fucked up somewhere " + textArray[i]);
+					break;
+					
 			}
 
 			/*
@@ -193,7 +237,10 @@ public class EpNameLister {
 				textArray[i] = ss;
 			}
 
-			
+
+			//System.out.println(textArray[i-1]);
+			//System.out.println(textArray[i]);
+			//System.out.println(hasUnairedPilot);
 
 			/*
 			 * The two main if-clauses.
@@ -201,11 +248,11 @@ public class EpNameLister {
 			 * we check if we're in the correct season.
 			 */
 			//TODO It has to match Season 1 and not Season 10 // NOT i-3 // CANT DO
-			if((!finishedListing && textArray[i-1].contains("Season " + seriesNumber)) || (hasUnairedPilot && textArray[i-3].contains("Season " + seriesNumber))) {
+			if((!finishedListing && textArray[i-1].contains("Season " + season + "")) || (hasUnairedPilot && textArray[i-3].contains("Season " + season))) {
 				correctSeries = true;
 			}
 
-			if(textArray[i-1].contains("Season " + (seriesNumber+1))) {
+			if(textArray[i-1].contains("Season " + (season+1))) {
 				correctSeries = false;
 				finishedListing = true;
 			}
@@ -222,6 +269,11 @@ public class EpNameLister {
 				mainString = mainString.concat(textArray[i] + "\n");
 
 		}
+		
+		
+		mainMap.put(listKey, episodeNames);
+		
+		} //End of main if-clause
 
 		if(episodeNames.size() == 0) {
 			System.out.println("Error. No files were found. Possible explanation: The season does not exist.");
