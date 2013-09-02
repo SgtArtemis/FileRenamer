@@ -10,7 +10,6 @@ This program changes that to something more elegant, in this
 __________________________________________________________________________________________
 
 WARNING: The program will not work on all TV Shows (such as BBC's "Life" or "Doctor Who").
-
 __________________________________________________________________________________________
 
 Feel free to comment on every flaw there is, I'd gladly take all the advice I can get.
